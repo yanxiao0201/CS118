@@ -41,7 +41,7 @@ int start(){// it will start, and bind to 5100 port, then start listening, then 
     }
     return sockid;
 }
-
+/*
 void consoledump(int socketID){
     char buffer[1024];
     bzero(buffer, 1024);
@@ -53,6 +53,7 @@ void consoledump(int socketID){
     write(socketID, "I got your message", 18);
     return;
 }
+ */
 
 int read_line(int socketID,char *buffer,int size){// This function will convert all the new line signs to the '\n'
     int count=0;
@@ -100,7 +101,9 @@ int get_method(int socketID, int location, char* buff){
         location = location + 3;
     }
     else{
-        write(socketID,"HTTP/1.1 400 Bad Request\n",26);
+        write(socketID,"400 Bad Request\r\n",26);
+        printf("%s","HTTP/1.1 400 Bad Request\n");
+        
         exit(-1);
     }
     return location+1;
@@ -137,10 +140,23 @@ void test_readURL(int socketID){//only works for GET
     return;
 }
 
-void send_file (int socketID,char *path){
-    printf("%s","sending file...");
+void send_file(int socketID,char *path){
+    printf("%s","sending file...\n");
     char *source = NULL;
     FILE *fp = fopen(path,"r");
+    
+    //if no file exists, generate a 404 message
+    if (fp == NULL){
+        write(socketID, "404 Not Found\r\n",15);
+        printf("%s","HTTP/1.1 404 Not Found\r\n");
+        exit(-1);
+    }
+    
+    write(socketID,"HTTP/1.1 200 OK\r\n",18);
+    write(socketID, "Connection: keep-alive\r\n", 26-2);
+    write(socketID,"\r\n",2);
+    printf("%s","HTTP/1.1 200 OK\r\n");
+    
     fseek(fp, 0L, SEEK_END);
     int fsize = ftell(fp);
     source = malloc(sizeof(char) * (fsize + 1));
@@ -149,26 +165,30 @@ void send_file (int socketID,char *path){
     source[sourceLength] = '\0';
     write(socketID,source,sourceLength);
     free(source);
-    printf("%s",path);
-    printf("%d",sourceLength);
+    //printf("%s",path);
+    //printf("%d",sourceLength);
 }
 
 void parsing_request(int *socketID){
     char line1_buffer[1024];
+    
     char URL[256];
     char path[512];
     int line1_size=read_line(*socketID, line1_buffer, sizeof(line1_buffer));
     int location=0;
     location=get_method(*socketID, location, line1_buffer);
     readURL(line1_buffer, location, sizeof(line1_buffer), URL, sizeof(URL));
+    
     printf("%s",line1_buffer);
+    //memset(line1_buffer, 0, 1024);
+    //read(*socketID, line1_buffer, 1024);
+    //printf("%s",line1_buffer);
     sprintf(path, "www%s",URL);
-    printf("%s",path);
+    //printf("%s",path);
     if (path[strlen(path)-1]=='/') {// if the enter path is a directory, return the index.html file
         strcat(path, "index.html");
     }
-    printf("%s","here");
-    //printf("%s",path);
+    
     send_file(*socketID,path);
     //printf("%s",URL);
 }
@@ -197,19 +217,14 @@ int main(int argc, const char * argv[]) {
     struct sockaddr_in myport;
     unsigned int myport_len=sizeof(myport);
     int refer_server_socketID=-1;
-    pthread_t parsing_thread;
-    while (1) {
-        refer_server_socketID=accept(server_socketID, (struct sockaddr*)&myport, &myport_len);
-        if (refer_server_socketID==-1) {
-            perror("accept error");
-            exit(-1);
-            // kill thread??
-        }
-        int n=pthread_create(&parsing_thread, NULL, (void*)parsing_request, (void*)&refer_server_socketID);
-        if (n!=0) {
-            perror("thread creation error");
-        }
+    refer_server_socketID=accept(server_socketID, (struct sockaddr*)&myport, &myport_len);
+    if (refer_server_socketID==-1) {
+        perror("accept error");
+        exit(-1);
     }
+    
+    parsing_request(&refer_server_socketID);
+
     close(server_socketID);
     close(refer_server_socketID);
     return 0;
