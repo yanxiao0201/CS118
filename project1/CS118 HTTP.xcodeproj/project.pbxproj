@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		753565E61E3C4531005346F0 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 753565E51E3C4531005346F0 /* main.c */; };
+		75EA8ACB1E3C47E8003C5749 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 75EA8ACA1E3C47E8003C5749 /* main.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +24,7 @@
 
 /* Begin PBXFileReference section */
 		753565E21E3C4531005346F0 /* CS118 HTTP */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CS118 HTTP"; sourceTree = BUILT_PRODUCTS_DIR; };
-		753565E51E3C4531005346F0 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		75EA8ACA1E3C47E8003C5749 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +57,7 @@
 		753565E41E3C4531005346F0 /* CS118 HTTP */ = {
 			isa = PBXGroup;
 			children = (
-				753565E51E3C4531005346F0 /* main.c */,
+				75EA8ACA1E3C47E8003C5749 /* main.c */,
 			);
 			path = "CS118 HTTP";
 			sourceTree = "<group>";
@@ -119,7 +119,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				753565E61E3C4531005346F0 /* main.c in Sources */,
+				75EA8ACB1E3C47E8003C5749 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +246,7 @@
 				753565EB1E3C4531005346F0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -138,7 +138,7 @@ void test_readURL(int socketID){//only works for GET
 }
 
 void send_file (int socketID,char *path){
-    printf("%s","sending file...");
+    printf("%s","sending file...\n");
     char *source = NULL;
     FILE *fp = fopen(path,"r");
     fseek(fp, 0L, SEEK_END);
@@ -149,33 +149,29 @@ void send_file (int socketID,char *path){
     source[sourceLength] = '\0';
     write(socketID,source,sourceLength);
     free(source);
-    printf("%s",path);
-    printf("%d",sourceLength);
+    printf("%s\n",path);
+    printf("%d\n",sourceLength);
 }
 
 void parsing_request(int *socketID){
+    int socketID_copy=*socketID;
     char line1_buffer[1024];
     char URL[256];
     char path[512];
-    int line1_size=read_line(*socketID, line1_buffer, sizeof(line1_buffer));
+    int line1_size=read_line(socketID_copy, line1_buffer, sizeof(line1_buffer));
     int location=0;
-    location=get_method(*socketID, location, line1_buffer);
+    location=get_method(socketID_copy, location, line1_buffer);
     readURL(line1_buffer, location, sizeof(line1_buffer), URL, sizeof(URL));
-    printf("%s",line1_buffer);
     sprintf(path, "www%s",URL);
-    printf("%s",path);
     if (path[strlen(path)-1]=='/') {// if the enter path is a directory, return the index.html file
         strcat(path, "index.html");
     }
-    printf("%s","here");
-    //printf("%s",path);
-    send_file(*socketID,path);
-    //printf("%s",URL);
+    send_file(socketID_copy,path);
 }
 
 //old version
-/*
-int main(int argc, const char * argv[]) {
+
+/*int main(int argc, const char * argv[]) {
     //int server_socketID=start();
     u_short port=5100;
     int server_socketID=start();
@@ -183,34 +179,34 @@ int main(int argc, const char * argv[]) {
     struct sockaddr_in myport;
     unsigned int myport_len=sizeof(myport);
     int refer_server_socketID=accept(server_socketID, (struct sockaddr*)&myport, &myport_len);
-    parsing_request(refer_server_socketID);
+    parsing_request(&refer_server_socketID);
     close(server_socketID);
     close(refer_server_socketID);
     return 0;
 }*/
 
 int main(int argc, const char * argv[]) {
-    //int server_socketID=start();
     u_short port=5100;
     int server_socketID=start();
-    printf("%s","start_listening\n");
     struct sockaddr_in myport;
     unsigned int myport_len=sizeof(myport);
     int refer_server_socketID=-1;
-    pthread_t parsing_thread;
     while (1) {
         refer_server_socketID=accept(server_socketID, (struct sockaddr*)&myport, &myport_len);
         if (refer_server_socketID==-1) {
             perror("accept error");
-            exit(-1);
-            // kill thread??
+            exit(1);
         }
-        int n=pthread_create(&parsing_thread, NULL, (void*)parsing_request, (void*)&refer_server_socketID);
-        if (n!=0) {
-            perror("thread creation error");
+        printf("accepted\n");
+        if (!fork()) {
+            close(server_socketID);
+            parsing_request(&refer_server_socketID);
+            close(refer_server_socketID);
+            exit(0);
         }
+        close(refer_server_socketID);// why must close it?
     }
     close(server_socketID);
     close(refer_server_socketID);
-    return 0;
+ return 0;
 }
