@@ -102,12 +102,7 @@ int get_method(int socketID, int location, char* buff){
     }
     else{
         write(socketID,"400 Bad Request\r\n",26);
-        write(socketID, "Connection: close\r\n",20);
         printf("%s","HTTP/1.1 400 Bad Request\n");
-        printf("Connection: close\r\n");
-        printf("\r\n");
-        //printf("Server: webserver\r\n");
-
         
         exit(-1);
     }
@@ -153,13 +148,14 @@ void send_file (int socketID,char *path){
     //if no file exists, generate a 404 message
     if (fp == NULL){
         write(socketID, "404 Not Found\r\n",15);
-        write(socketID, "Connection: close\r\n",20);
-        
         printf("%s","HTTP/1.1 404 Not Found\r\n");
-        printf("Connection: close\r\n");
-        printf("\r\n");
         exit(-1);
     }
+    
+    write(socketID,"HTTP/1.1 200 OK\r\n",18);
+    write(socketID, "Connection: keep-alive\r\n", 26-2);
+    write(socketID,"\r\n",2);
+    printf("%s","HTTP/1.1 200 OK\r\n");
     
     fseek(fp, 0L, SEEK_END);
     int fsize = ftell(fp);
@@ -167,37 +163,20 @@ void send_file (int socketID,char *path){
     fseek(fp, 0L, SEEK_SET);
     int sourceLength = fread(source, sizeof(char), fsize, fp);
     source[sourceLength] = '\0';
-    
-    write(socketID,"HTTP/1.1 200 OK\r\n",18);
-    write(socketID, "Connection: keep-alive\r\n", 26-2);
-    write(socketID, "Server: webserver\r\n",18-2);
-    char conlength[256];
-    memset(conlength,0,256);
-    sprintf(conlength,"Content-Length: %d\r\n",sourceLength);
-    write(socketID, conlength, 256);
-    write(socketID, "Content-Type: text/html\r\n",23-2);
-    write(socketID, "Connection: keep-alive\r\n", 26-2);
-    write(socketID,"\r\n",2);
-    
-    printf("%s","HTTP/1.1 200 OK\r\n");
-    printf("Connection: keep-alive\r\n");
-    printf("Server: webserver\r\n");
-    printf("%s",conlength);
-    printf("Content-Type: text/html\r\n");
-    printf("\r\n");
-    
-    
     write(socketID,source,sourceLength);
     free(source);
-    //printf("%s\n",path);
-    //printf("%d\n",sourceLength);
+<<<<<<< HEAD
+    //printf("%s",path);
+    //printf("%d",sourceLength);
+=======
+    printf("%s\n",path);
+    printf("%d\n",sourceLength);
+>>>>>>> fbed68699f922a34e17ec15952817b86a69d7875
 }
 
 void parsing_request(int *socketID){
     int socketID_copy=*socketID;
     char line1_buffer[1024];
-    char rest_buffer[1024];
-    memset(rest_buffer, 0, 1024);
     
     char URL[256];
     char path[512];
@@ -205,12 +184,17 @@ void parsing_request(int *socketID){
     int location=0;
     location=get_method(socketID_copy, location, line1_buffer);
     readURL(line1_buffer, location, sizeof(line1_buffer), URL, sizeof(URL));
-    printf("%s",line1_buffer);
-    read(*socketID, rest_buffer, 1024);
-    printf("%s",rest_buffer);
-    printf("\r\n");
+<<<<<<< HEAD
     
+    printf("%s",line1_buffer);
+    //memset(line1_buffer, 0, 1024);
+    //read(*socketID, line1_buffer, 1024);
+    //printf("%s",line1_buffer);
     sprintf(path, "www%s",URL);
+    //printf("%s",path);
+=======
+    sprintf(path, "www%s",URL);
+>>>>>>> fbed68699f922a34e17ec15952817b86a69d7875
     if (path[strlen(path)-1]=='/') {// if the enter path is a directory, return the index.html file
         strcat(path, "index.html");
     }
@@ -256,5 +240,5 @@ int main(int argc, const char * argv[]) {
     }
     close(server_socketID);
     close(refer_server_socketID);
-    return 0;
+ return 0;
 }
