@@ -165,8 +165,8 @@ void send_file (int socketID,char *path){
     source[sourceLength] = '\0';
     write(socketID,source,sourceLength);
     free(source);
-    //printf("%s",path);
-    //printf("%d",sourceLength);
+    printf("%s\n",path);
+    printf("%d\n",sourceLength);
 }
 
 void parsing_request(int *socketID){
@@ -179,13 +179,7 @@ void parsing_request(int *socketID){
     int location=0;
     location=get_method(socketID_copy, location, line1_buffer);
     readURL(line1_buffer, location, sizeof(line1_buffer), URL, sizeof(URL));
-    
-    printf("%s",line1_buffer);
-    //memset(line1_buffer, 0, 1024);
-    //read(*socketID, line1_buffer, 1024);
-    //printf("%s",line1_buffer);
     sprintf(path, "www%s",URL);
-    //printf("%s",path);
     if (path[strlen(path)-1]=='/') {// if the enter path is a directory, return the index.html file
         strcat(path, "index.html");
     }
