@@ -41,24 +41,11 @@ int start(){// it will start, and bind to 5100 port, then start listening, then 
     }
     return sockid;
 }
-/*
-void consoledump(int socketID){
-    char buffer[1024];
-    bzero(buffer, 1024);
-    if(read(socketID, buffer, 1023)<0){
-        perror("Reading Error");
-        exit(1);
-    }
-    printf("%s",buffer);
-    write(socketID, "I got your message", 18);
-    return;
-}
- */
 
 int read_line(int socketID,char *buffer,int size){// This function will convert all the new line signs to the '\n'
     int count=0;
     int c='\0';
-    while ( (count<size-1) && (c!='\n')) {
+    while ((count<size-1) && (c!='\n')) {
         ssize_t n=recv(socketID, &c, 1, 0);
         if (n<0) {
             return -1;// read error, break the loop
@@ -82,6 +69,7 @@ int read_line(int socketID,char *buffer,int size){// This function will convert 
 }
 
 /*Function to debug read_lines*/
+/*
 void test_read_line(int socketID){
     char buffer[1024];
     bzero(buffer, 1024);
@@ -93,6 +81,7 @@ void test_read_line(int socketID){
     write(socketID, "I got your message", 18);
     return;
 }
+*/
 
 int get_method(int socketID, int location, char* buff){
     if (strncmp(buff, "GET", 3) == 0){
@@ -129,6 +118,7 @@ int readURL(char *in_buffer,int startpos,int in_buffer_size, char *out_buffer,in
     return j;
 }
 
+/*
 void test_readURL(int socketID){//only works for GET
     char buffer[1024];
     char URL[512];
@@ -144,6 +134,9 @@ void test_readURL(int socketID){//only works for GET
     write(socketID, "I got your message", 18);
     return;
 }
+*/
+
+
 
 void send_file (int socketID,char *path){
     printf("%s","sending file...\n");
@@ -152,8 +145,10 @@ void send_file (int socketID,char *path){
     
     //if no file exists, generate a 404 message
     if (fp == NULL){
-        write(socketID, "404 Not Found\r\n",15);
-        write(socketID, "Connection: close\r\n",20);
+        //write(socketID,"HTTP/1.1 404 Not Found\r\n\r\n",sizeof("HTTP/1.1 404 Not Found\r\n\r\n"));
+        //printf("fp is null");
+        write(socketID,"\r\n",2);
+        write(socketID, "File Not Found\r\n",sizeof("Error 404: File Not Found\r\n"));
         
         printf("%s","HTTP/1.1 404 Not Found\r\n");
         printf("Connection: close\r\n");
@@ -217,21 +212,6 @@ void parsing_request(int *socketID){
     send_file(socketID_copy,path);
 }
 
-//old version
-
-/*int main(int argc, const char * argv[]) {
-    //int server_socketID=start();
-    u_short port=5100;
-    int server_socketID=start();
-    printf("%s","start_listening\n");
-    struct sockaddr_in myport;
-    unsigned int myport_len=sizeof(myport);
-    int refer_server_socketID=accept(server_socketID, (struct sockaddr*)&myport, &myport_len);
-    parsing_request(&refer_server_socketID);
-    close(server_socketID);
-    close(refer_server_socketID);
-    return 0;
-}*/
 
 int main(int argc, const char * argv[]) {
     u_short port=5100;
