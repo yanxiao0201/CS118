@@ -20,7 +20,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
-int start(){// it will start, and bind to 5100 port, then start listening, then return the fd of
+int start(int port){// it will start, and bind to 5100 port, then start listening, then return the fd of
     struct sockaddr_in addport;
     int sockid=socket(AF_INET, SOCK_STREAM, 0);// return the file descriptor of the new socket
     if (sockid==-1) {
@@ -29,7 +29,7 @@ int start(){// it will start, and bind to 5100 port, then start listening, then 
     }
     memset((char*)&addport, 0, sizeof(addport));
     addport.sin_family=AF_INET;
-    addport.sin_port=htons(5100);// 5100 port
+    addport.sin_port=htons(port);// 5100 port
     addport.sin_addr.s_addr=htonl(INADDR_ANY);
     if (bind(sockid, (struct sockaddr*) &addport, sizeof(addport))==-1) {// bind socket to add port
         perror("Bind Failed");
@@ -90,15 +90,7 @@ int get_method(int socketID, int location, char* buff){
         location = location + 3;
     }
     else{
-        write(socketID,"400 Bad Request\r\n",26);
-        write(socketID, "Connection: close\r\n",20);
-        printf("%s","HTTP/1.1 400 Bad Request\n");
-        printf("Connection: close\r\n");
-        printf("\r\n");
-        //printf("Server: webserver\r\n");
-
-        
-        exit(-1);
+        location = -2;
     }
     return location+1;
 }
@@ -145,15 +137,20 @@ void send_file (int socketID,char *path){
     
     //if no file exists, generate a 404 message
     if (fp == NULL){
-        //write(socketID,"HTTP/1.1 404 Not Found\r\n\r\n",sizeof("HTTP/1.1 404 Not Found\r\n\r\n"));
-        //printf("fp is null");
-        write(socketID,"\r\n",2);
-        write(socketID, "File Not Found\r\n",sizeof("Error 404: File Not Found\r\n"));
+        path = "www/404.html";
+        fp = fopen(path,"r");
+        write(socketID,"HTTP/1.1 404 Not Found\r\n",sizeof("HTTP/1.1 404 Not Found\r\n"));
+        printf("HTTP/1.1 404 Not Found\r\n");
+    }
+    else if(strcmp(path,"www/400.html") == 0){
         
-        printf("%s","HTTP/1.1 404 Not Found\r\n");
-        printf("Connection: close\r\n");
-        printf("\r\n");
-        exit(-1);
+        write(socketID,"HTTP/1.1 400 Bad Request\r\n",sizeof("HTTP/1.1 400 Bad Request\r\n"));
+        printf("HTTP/1.1 400 Bad Request\r\n");
+        
+    }
+    else{
+        write(socketID,"HTTP/1.1 200 OK\r\n",sizeof("HTTP/1.1 200 OK\r\n"));
+        printf("HTTP/1.1 200 OK\r\n");
     }
     
     fseek(fp, 0L, SEEK_END);
@@ -163,9 +160,7 @@ void send_file (int socketID,char *path){
     int sourceLength = fread(source, sizeof(char), fsize, fp);
     source[sourceLength] = '\0';
     
-    write(socketID,"HTTP/1.1 200 OK\r\n",18);
-    write(socketID, "Connection: keep-alive\r\n", 26-2);
-    write(socketID, "Server: webserver\r\n",18-2);
+    write(socketID, "Server: webserver\r\n",sizeof("Server: webserver\r\n"));
     char conlength[256];
     memset(conlength,0,256);
     sprintf(conlength,"Content-Length: %d\r\n",sourceLength);
@@ -174,18 +169,15 @@ void send_file (int socketID,char *path){
     write(socketID, "Connection: keep-alive\r\n", 26-2);
     write(socketID,"\r\n",2);
     
-    printf("%s","HTTP/1.1 200 OK\r\n");
-    printf("Connection: keep-alive\r\n");
     printf("Server: webserver\r\n");
     printf("%s",conlength);
     printf("Content-Type: text/html\r\n");
+    printf("Connection: keep-alive\r\n");
     printf("\r\n");
-    
     
     write(socketID,source,sourceLength);
     free(source);
-    //printf("%s\n",path);
-    //printf("%d\n",sourceLength);
+
 }
 
 void parsing_request(int *socketID){
@@ -199,23 +191,29 @@ void parsing_request(int *socketID){
     int line1_size=read_line(socketID_copy, line1_buffer, sizeof(line1_buffer));
     int location=0;
     location=get_method(socketID_copy, location, line1_buffer);
+    
     readURL(line1_buffer, location, sizeof(line1_buffer), URL, sizeof(URL));
     printf("%s",line1_buffer);
     read(*socketID, rest_buffer, 1024);
     printf("%s",rest_buffer);
     printf("\r\n");
     
-    sprintf(path, "www%s",URL);
-    if (path[strlen(path)-1]=='/') {// if the enter path is a directory, return the index.html file
-        strcat(path, "index.html");
+    if (location > 0){
+        sprintf(path, "www%s",URL);
+        if (path[strlen(path)-1]=='/') {// if the enter path is a directory, return the index.html file
+            strcat(path, "index.html");
+        }
+    }
+    else{
+        strcpy(path, "www/400.html");
     }
     send_file(socketID_copy,path);
 }
 
 
 int main(int argc, const char * argv[]) {
-    u_short port=5100;
-    int server_socketID=start();
+    u_short port= atoi(argv[1]);
+    int server_socketID=start(port);
     struct sockaddr_in myport;
     unsigned int myport_len=sizeof(myport);
     int refer_server_socketID=-1;
