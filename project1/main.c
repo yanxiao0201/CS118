@@ -139,17 +139,17 @@ void send_file (int socketID,char *path){
     if (fp == NULL){
         path = "www/404.html";
         fp = fopen(path,"r");
-        write(socketID,"HTTP/1.1 404 Not Found\r\n",sizeof("HTTP/1.1 404 Not Found\r\n"));
+        write(socketID,"HTTP/1.1 404 Not Found\r\n",strlen("HTTP/1.1 404 Not Found\r\n"));
         printf("HTTP/1.1 404 Not Found\r\n");
     }
     else if(strcmp(path,"www/400.html") == 0){
         
-        write(socketID,"HTTP/1.1 400 Bad Request\r\n",sizeof("HTTP/1.1 400 Bad Request\r\n"));
+        write(socketID,"HTTP/1.1 400 Bad Request\r\n",strlen("HTTP/1.1 400 Bad Request\r\n"));
         printf("HTTP/1.1 400 Bad Request\r\n");
         
     }
     else{
-        write(socketID,"HTTP/1.1 200 OK\r\n",sizeof("HTTP/1.1 200 OK\r\n"));
+        write(socketID,"HTTP/1.1 200 OK\r\n",strlen("HTTP/1.1 200 OK\r\n"));
         printf("HTTP/1.1 200 OK\r\n");
     }
     
@@ -160,13 +160,13 @@ void send_file (int socketID,char *path){
     int sourceLength = fread(source, sizeof(char), fsize, fp);
     source[sourceLength] = '\0';
     
-    write(socketID, "Server: webserver\r\n",sizeof("Server: webserver\r\n"));
+    write(socketID, "Server: webserver\r\n",strlen("Server: webserver\r\n"));
     char conlength[256];
     memset(conlength,0,256);
     sprintf(conlength,"Content-Length: %d\r\n",sourceLength);
-    write(socketID, conlength, 256);
-    write(socketID, "Content-Type: text/html\r\n",23-2);
-    write(socketID, "Connection: keep-alive\r\n", 26-2);
+    write(socketID, conlength, strlen(conlength));
+    write(socketID, "Content-Type: image/jpg\r\n",strlen("Content-Type: image/jpg\r\n"));
+    write(socketID, "Connection: keep-alive\r\n", strlen("Connection: keep-alive\r\n"));
     write(socketID,"\r\n",2);
     
     printf("Server: webserver\r\n");
