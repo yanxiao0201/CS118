@@ -12,23 +12,39 @@
 #include <stdio.h>
 #include <vector>
 #include <stdlib.h>
-typedef std::vector<uint8_t> Data;
+#include <cstdint>
+
+
+#define MAXSEQ 1024
+#define BUFFSIZE 1031
+
+typedef std::vector<char> Data;
 
 struct TCPheader{
-    uint16_t seq_number = 0;
-    uint16_t ack_number = 0;
+    uint16_t seq_number;
+    uint16_t ack_number;
     //uint16_t rcvWin = 0;
-    bool ACK=false;
-    bool FIN=false;
-    bool SYN=false;
+    bool ACK;
+    bool FIN;
+    bool SYN;
+    TCPheader(){
+        seq_number=0;
+        ack_number=0;
+        //uint16_t rcvWin = 0;
+        ACK=false;
+        FIN=false;
+        SYN=false;
+    }
 };
 
 class Packet{
 private:
     TCPheader myHeader;
     Data myData;
+    
 public:
     Packet();
+    Packet(Data& rcvData);
     void setHeader(uint16_t seq_number,uint16_t ack_number,bool ACK,bool FIN,bool SYN);
     TCPheader getHeader();
     void setData(Data out_data);
@@ -43,5 +59,8 @@ public:
     bool getACK();
     bool getFIN();
     bool getSYN();
+    Data loadPacket();
+    //int loadPacket();
+    //char buffer[BUFFSIZE];
 };
 #endif /* Packet_hpp */

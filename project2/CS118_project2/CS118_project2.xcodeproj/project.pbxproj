@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D336534D1E64E620007795D0 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D336534C1E64E620007795D0 /* main.cpp */; };
+		D336534D1E64E620007795D0 /* client.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D336534C1E64E620007795D0 /* client.cpp */; };
 		D33653551E64E635007795D0 /* Packet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D33653531E64E635007795D0 /* Packet.cpp */; };
 /* End PBXBuildFile section */
 
@@ -25,7 +25,7 @@
 
 /* Begin PBXFileReference section */
 		D33653491E64E620007795D0 /* CS118_project2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CS118_project2; sourceTree = BUILT_PRODUCTS_DIR; };
-		D336534C1E64E620007795D0 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		D336534C1E64E620007795D0 /* client.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = client.cpp; sourceTree = "<group>"; };
 		D33653531E64E635007795D0 /* Packet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Packet.cpp; sourceTree = "<group>"; };
 		D33653541E64E635007795D0 /* Packet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Packet.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -60,7 +60,7 @@
 		D336534B1E64E620007795D0 /* CS118_project2 */ = {
 			isa = PBXGroup;
 			children = (
-				D336534C1E64E620007795D0 /* main.cpp */,
+				D336534C1E64E620007795D0 /* client.cpp */,
 				D33653531E64E635007795D0 /* Packet.cpp */,
 				D33653541E64E635007795D0 /* Packet.h */,
 			);
@@ -124,7 +124,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D336534D1E64E620007795D0 /* main.cpp in Sources */,
+				D336534D1E64E620007795D0 /* client.cpp in Sources */,
 				D33653551E64E635007795D0 /* Packet.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
