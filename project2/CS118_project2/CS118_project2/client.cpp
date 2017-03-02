@@ -108,7 +108,7 @@ Data syn_generator(void){
     syn_packet.setSYN(true);
     Data syn_send = syn_packet.loadPacket();
     
-    cout << "Sending SYN Packet " << firstPacketNo << endl;
+    cout << "Sending SYN Packet SeqNo = " << firstPacketNo << endl;
 
     return syn_send;
 }
@@ -151,7 +151,7 @@ Data packet_generator(Packet& rcv_packet){
         cout << "This is the FIN ACK packet" << endl;
     }
         
-    cout << "Sending ACK Packet SeqNo = " << seq_No <<" AckNo = " << ack_no << endl;
+    cout << "Sending ACK Packet SeqNo = " << seq_No <<" AckNo = " << ack_no + 1 << endl;
     Data ack_send = send_packet.loadPacket();
     
     return ack_send;
