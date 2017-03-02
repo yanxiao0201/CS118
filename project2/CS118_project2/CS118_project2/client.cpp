@@ -6,9 +6,9 @@
 //  Copyright © 2017 Xiao Yan. All rights reserved.
 //
 
-#include <iostream>
-#include "Packet.h"
 
+#include "Packet.h"
+#include "client.h"
 #include <stdio.h>
 #include <string.h> 	// memset, memcpy
 #include <netinet/in.h> // sockaddr_in
@@ -17,12 +17,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <iostream>
 
 using namespace std;
-
-Data packet_generator(Packet& rcv_packet);
-//Data request_generator(Packet& rcv_packet, char * filename);
-Data syn_generator(void);
 
 int main(int argc, char * argv[]) {
     
