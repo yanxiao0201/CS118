@@ -27,15 +27,15 @@ Data Packet::getData(){
     return myData;
 }
 
-bool Packet::getSYN(){
+bool Packet::isSYN(){
     return myHeader.SYN;
 }
 
-bool Packet::getACK(){
+bool Packet::isACK(){
     return myHeader.ACK;
 }
 
-bool Packet::getFIN(){
+bool Packet::isFIN(){
     return myHeader.FIN;
 }
 

@@ -56,9 +56,9 @@ public:
     void setACK(bool ACK);
     void setFIN(bool FIN);
     void setSYN(bool SYN);
-    bool getACK();
-    bool getFIN();
-    bool getSYN();
+    bool isACK();
+    bool isFIN();
+    bool isSYN();
     Data loadPacket();
     //int loadPacket();
     //char buffer[BUFFSIZE];

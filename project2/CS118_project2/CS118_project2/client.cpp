@@ -80,10 +80,10 @@ int main(int argc, char * argv[]) {
             perror("error sending ACK packet");
         }
         
-        if (rcv_packet.getSYN()){
+        if (rcv_packet.isSYN()){
             continue;
         }
-        else if (rcv_packet.getFIN()){
+        else if (rcv_packet.isFIN()){
             break;
         }
         
@@ -138,14 +138,14 @@ Data request_generator(Packet& rcv_packet, char * filename){
 
 Data packet_generator(Packet& rcv_packet){
     
-    uint16_t seq_No = rcv_packet.getACK();
+    uint16_t seq_No = rcv_packet.getAckNumber();
     Packet send_packet;
     send_packet.setSeq(seq_No);
     uint16_t ack_no = (rcv_packet.getData().size() + rcv_packet.getSeq())% MAXSEQ;
     send_packet.setACK(true);
     send_packet.setAckNumber(ack_no);
     
-    if (rcv_packet.getFIN()){
+    if (rcv_packet.isFIN()){
         send_packet.setFIN(true);
         send_packet.setAckNumber(ack_no + 1);
         cout << "This is the FIN ACK packet" << endl;
