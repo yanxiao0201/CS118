@@ -72,8 +72,7 @@ int main(int argc, char * argv[]) {
         
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
-        string res(rcv_packet.getData().begin(),rcv_packet.getData().end());
-        cout << res << endl;
+        cout << rcv_packet.getData()[0] << endl;
         Data ack_send = packet_generator(rcv_packet);
         
         if(sendto(sockfd, ack_send.data(), ack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
