@@ -60,7 +60,7 @@ int TCPServer::sendSYNACK(){
     mySYNACK.setACK(true);
     mySYNACK.setAckNumber(my_ack_num);
     mySYNACK.setSeq(my_seq_num);
-    Data loaded_SYNACK=mySYNACK.loadPacket();
+    Data loaded_SYNACK=mySYNACK.to_UDPData();
     while (true) {
         if (sendto(sockid, loaded_SYNACK.data(), loaded_SYNACK.size(), 0, (struct sockaddr *) &client_address , clienet_addrlen)<0) {
             perror("SYNACK sent failed\n");
@@ -106,10 +106,11 @@ void TCPServer::sendFile(){
     while (!BigBuffer.IsEmpty()) {
         count--;
         Data ready_to_send_data=BigBuffer.retreive_last();
-        //std::cout<<ready_to_send_data[0]<<std::endl;
-        Packet ready_to_send_packet=Packet(ready_to_send_data);
+        std::cout<<"ready_to_send content "<<ready_to_send_data[0]<<std::endl;
+        Packet ready_to_send_packet;
+        ready_to_send_packet.loadData(ready_to_send_data);
         ready_to_send_packet.setSeq(my_seq_num);
-        Data loaded_data=ready_to_send_packet.loadPacket();
+        Data loaded_data=ready_to_send_packet.to_UDPData();
         while (true) {
             if (sendto(sockid, loaded_data.data(), loaded_data.size(), 0, (struct sockaddr *) &client_address , clienet_addrlen)<0) {
                 perror("File sent failed\n");
@@ -146,7 +147,7 @@ void TCPServer::sendFile(){
 void TCPServer::sendFIN(){
     Packet myFIN;
     myFIN.setFIN(true);
-    Data loaded_Fin=myFIN.loadPacket();
+    Data loaded_Fin=myFIN.to_UDPData();
     while (true) {
         if (sendto(sockid, loaded_Fin.data(), loaded_Fin.size(), 0, (struct sockaddr *) &client_address , clienet_addrlen)<0) {
             perror("FIN sent failed\n");

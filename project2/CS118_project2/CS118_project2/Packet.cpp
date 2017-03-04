@@ -73,7 +73,7 @@ void Packet::setAckNumber(uint16_t ack_number){
      memcpy(buffer, &myHeader.seq_number, <#size_t __n#>)
    */
     
-Data Packet::loadPacket(){
+Data Packet::to_UDPData(){
     Data result;
     uint8_t first, last;
     first = myHeader.seq_number >> 8;
@@ -92,12 +92,16 @@ Data Packet::loadPacket(){
     
     result.insert(result.end(),myData.begin(),myData.end());
     return result;
-    
 }
 
 Packet::Packet(){
     
 }
+
+void Packet::loadData(Data &ready_to_send_data){
+    myData=ready_to_send_data;
+}
+
 Packet::Packet(Data& rcvData){
     myHeader.seq_number = rcvData[0] << 8 | rcvData[1];
     myHeader.ack_number = rcvData[2] << 8 | rcvData[3];
@@ -105,7 +109,6 @@ Packet::Packet(Data& rcvData){
     myHeader.FIN = rcvData[5];
     myHeader.SYN = rcvData[6];
     if (rcvData.size() > 7){
-        
         myData=std::vector<char>(rcvData.begin() + 7,rcvData.end());
     }
 }
