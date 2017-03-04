@@ -41,7 +41,7 @@ void TCPServer::receiveSYN(){
         Data mydata(buffer,buffer+receive_len);
         Packet recv_pkt(mydata);
         if (recv_pkt.isSYN()) {
-            my_ack_num=recv_pkt.getSeq()+receive_len+1;
+            my_ack_num=recv_pkt.getSeq()+1;
             std::cout<<"SYN received! My ACK is "<<my_ack_num<<std::endl;
             break;
         }
@@ -103,7 +103,7 @@ void TCPServer::receiveFINACK(){
         Packet recv_pkt(myData);
         if (recv_pkt.isFIN() && recv_pkt.isACK()) {
             printf("FINACK received!\n");
-            my_ack_num=recv_pkt.getSeq()+receive_len+1;
+            my_ack_num=recv_pkt.getSeq()+1;
             break;
         }
         else{
