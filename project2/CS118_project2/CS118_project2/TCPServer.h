@@ -10,7 +10,6 @@
 #define TCPServer_h
 
 #include <iostream>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -23,7 +22,7 @@
 #include <pthread.h>
 #include <sys/wait.h>
 #include <stdlib.h>
-#include "Packet.h"
+#include "OutputBuffer.h"
 class TCPServer{
 private:
     char buffer[BUFFSIZE];
@@ -33,12 +32,15 @@ private:
     int my_ack_num;
     struct sockaddr_in client_address;
     socklen_t clienet_addrlen;
+    OutputBuffer BigBuffer;
 public:
     TCPServer(int port);
     void receiveSYN();
     int sendSYNACK();
+    void receivefirstACK();
     void sendFIN();
     void receiveFINACK();
+    void sendFile();
 };
 
 
