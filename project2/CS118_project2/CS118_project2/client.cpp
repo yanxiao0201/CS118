@@ -91,10 +91,10 @@ int main(int argc, char * argv[]) {
             cout << endl;
             Data rcv_data = rcv_packet.getData();
             int buffsize = rcv_buffer.buffsize();
-            if (buffsize == 5){
+            //if (buffsize == 5){
                 //write to output file
-                rcv_buffer.clean();
-            }
+              //  rcv_buffer.clean();
+            //}
             
             if (rcv_data.size() != 0){
                 rcv_buffer.insert(rcv_packet);
@@ -129,7 +129,6 @@ Data syn_generator(void){
 
     return syn_send;
 }
-
 
 Data packet_generator(Packet& rcv_packet){
     
