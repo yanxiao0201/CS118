@@ -22,9 +22,10 @@ class RcvBuffer{
 public:
     int insert(Packet p);
     int buffsize();
+    void clean();
     std::vector<rcvseg> getBuffer();
 
-//private:
+private:
     std::vector<rcvseg> FinalBuff;
 };
 

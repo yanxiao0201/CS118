@@ -91,16 +91,22 @@ int main(int argc, char * argv[]) {
             cout << endl;
             Data rcv_data = rcv_packet.getData();
             int buffsize = rcv_buffer.buffsize();
-            if (rcv_data.size() != 0 && buffsize < 5){
+            if (buffsize == 5){
+                //write to output file
+                rcv_buffer.clean();
+            }
+            
+            if (rcv_data.size() != 0){
                 rcv_buffer.insert(rcv_packet);
             }
             
         }
     }
     
+    vector<rcvseg> FinalBuff = rcv_buffer.getBuffer();
     
-    for (int i = 0; i < rcv_buffer.FinalBuff.size(); i++){
-        string res(rcv_buffer.FinalBuff[i].thisData.begin(),rcv_buffer.FinalBuff[i].thisData.end());
+    for (int i = 0; i < FinalBuff.size(); i++){
+        string res(FinalBuff[i].thisData.begin(),FinalBuff[i].thisData.end());
         cout << res << endl;
         
     }
@@ -134,8 +140,6 @@ Data packet_generator(Packet& rcv_packet){
     
     if (rcv_packet.isFIN()){
         send_packet.setFIN(true);
-        //ack_no ++;
-        cout << "This is the FIN ACK packet" << endl;
     }
     
     send_packet.setACK(true);
@@ -170,3 +174,8 @@ vector<rcvseg> RcvBuffer::getBuffer(){
 int RcvBuffer::buffsize(){
     return FinalBuff.size();
 }
+
+void RcvBuffer::clean(){
+    FinalBuff.clear();
+}
+
