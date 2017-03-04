@@ -62,6 +62,7 @@ int main(int argc, char * argv[]) {
     
     char buffer[BUFFSIZE];
     int rcv;
+    RcvBuffer rcv_buffer;
 
     while (1){
         rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen);
@@ -78,18 +79,31 @@ int main(int argc, char * argv[]) {
         }
         
         if (rcv_packet.isSYN()){
+            cout << endl;
             continue;
         }
         else if (rcv_packet.isFIN()){
+            cout << " FIN" << endl;
             break;
         }
         
         else{
-            //Handle the data
+            cout << endl;
+            Data rcv_data = rcv_packet.getData();
+            int buffsize = rcv_buffer.buffsize();
+            if (rcv_data.size() != 0 && buffsize < 5){
+                rcv_buffer.insert(rcv_packet);
+            }
             
         }
     }
     
+    
+    for (int i = 0; i < rcv_buffer.FinalBuff.size(); i++){
+        string res(rcv_buffer.FinalBuff[i].thisData.begin(),rcv_buffer.FinalBuff[i].thisData.end());
+        cout << res << endl;
+        
+    }
     
     close(sockfd);
     return 0;
@@ -105,33 +119,11 @@ Data syn_generator(void){
     syn_packet.setSYN(true);
     Data syn_send = syn_packet.loadPacket();
     
-    cout << "Sending SYN Packet SeqNo = " << firstPacketNo << endl;
+    cout << "Sending Packet SYN" << endl;
 
     return syn_send;
 }
 
-/*
-Data request_generator(Packet& rcv_packet, char * filename){
-    
-    Packet send_packet;
-    send_packet.setSYN(true);
-    
-    uint16_t seq_No = rcv_packet.getACK();
-    send_packet.setSeq(seq_No);
-    
-    send_packet.setACK(true);
-    uint16_t ack_no = (rcv_packet.getData().size() + rcv_packet.getSeq())% MAXSEQ;
-    send_packet.setAckNumber(ack_no);
-    
-    cout << "Sending ACK Packet SeqNo = " << seq_No <<" AckNo = " << ack_no << endl;
-    
-    Data mydata(filename, filename + sizeof(filename));
-    Data ack_send = send_packet.loadPacket();
-    
-    return ack_send;
-    
-}
- */
 
 Data packet_generator(Packet& rcv_packet){
     
@@ -139,18 +131,42 @@ Data packet_generator(Packet& rcv_packet){
     Packet send_packet;
     send_packet.setSeq(seq_No);
     uint16_t ack_no = (rcv_packet.getData().size() + rcv_packet.getSeq())% MAXSEQ;
-    send_packet.setACK(true);
-    send_packet.setAckNumber(ack_no);
     
     if (rcv_packet.isFIN()){
         send_packet.setFIN(true);
-        send_packet.setAckNumber(ack_no + 1);
+        //ack_no ++;
         cout << "This is the FIN ACK packet" << endl;
     }
-        
-    cout << "Sending ACK Packet SeqNo = " << seq_No <<" AckNo = " << ack_no + 1 << endl;
+    
+    send_packet.setACK(true);
+    send_packet.setAckNumber(ack_no);
+    
+
+    cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << endl;
+    cout << "Sending Packet AckNo = " << ack_no;
     Data ack_send = send_packet.loadPacket();
     
     return ack_send;
 }
 
+int RcvBuffer::insert(Packet p){
+    
+    Data tmp = p.getData();
+    uint16_t seqNo = p.getSeq();
+    rcvseg rcv_seg;
+    rcv_seg.seqNo = seqNo;
+    rcv_seg.thisData = tmp;
+    FinalBuff.push_back(rcv_seg);
+    
+    return 0;
+}
+
+vector<rcvseg> RcvBuffer::getBuffer(){
+    
+    return FinalBuff;
+    
+}
+
+int RcvBuffer::buffsize(){
+    return FinalBuff.size();
+}

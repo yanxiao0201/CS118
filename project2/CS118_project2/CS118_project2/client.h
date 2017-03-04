@@ -13,21 +13,20 @@ Data packet_generator(Packet& rcv_packet);
 //Data request_generator(Packet& rcv_packet, char * filename);
 Data syn_generator(void);
 
-class RcvBuffer{
-public:
-    RcvBuffer();
-    void setSeq(uint16_t seq_number);
-    uint16_t getSeqNo();
-    int insert(Packet p);
-    std::vector<char> getBuffer();
-
-private:
-    std::vector<char> buffer;
+struct rcvseg{
+    uint16_t seqNo;
+    Data thisData;
 };
 
+class RcvBuffer{
+public:
+    int insert(Packet p);
+    int buffsize();
+    std::vector<rcvseg> getBuffer();
 
-
-
+//private:
+    std::vector<rcvseg> FinalBuff;
+};
 
 
 #endif /* client_h */

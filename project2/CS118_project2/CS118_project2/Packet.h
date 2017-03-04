@@ -14,9 +14,9 @@
 #include <stdlib.h>
 #include <cstdint>
 
-
-#define MAXSEQ 1024
-#define BUFFSIZE 1031
+#define WND 5120
+#define MAXSEQ 30720
+#define BUFFSIZE 1024
 
 typedef std::vector<char> Data;
 
