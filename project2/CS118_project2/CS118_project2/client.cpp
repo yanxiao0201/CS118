@@ -72,6 +72,8 @@ int main(int argc, char * argv[]) {
         
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
+        string res(rcv_packet.getData().begin(),rcv_packet.getData().end());
+        cout << res << endl;
         Data ack_send = packet_generator(rcv_packet);
         
         if(sendto(sockfd, ack_send.data(), ack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
@@ -103,6 +105,7 @@ int main(int argc, char * argv[]) {
         }
     }
     
+    /*
     vector<rcvseg> FinalBuff = rcv_buffer.getBuffer();
     
     for (int i = 0; i < FinalBuff.size(); i++){
@@ -110,6 +113,7 @@ int main(int argc, char * argv[]) {
         cout << res << endl;
         
     }
+     */
     
     close(sockfd);
     return 0;
