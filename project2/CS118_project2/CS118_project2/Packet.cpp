@@ -105,6 +105,7 @@ Packet::Packet(Data& rcvData){
     myHeader.FIN = rcvData[5];
     myHeader.SYN = rcvData[6];
     if (rcvData.size() > 7){
+        
         myData=std::vector<char>(rcvData.begin() + 7,rcvData.end());
     }
 }

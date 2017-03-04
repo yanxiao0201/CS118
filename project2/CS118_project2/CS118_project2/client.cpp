@@ -70,9 +70,18 @@ int main(int argc, char * argv[]) {
             perror("Error receiving from pipeline");
         }
         
+        cout << rcv << endl;
+        
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
-        cout << rcv_packet.getData()[0] << endl;
+        
+        if (rcv_packet.getData().size() != 0){
+            cout << rcv_packet.getData()[0] << endl;
+        }
+        else {
+            cout << "this packet is empty" << endl;
+        }
+        
         Data ack_send = packet_generator(rcv_packet);
         
         if(sendto(sockfd, ack_send.data(), ack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
@@ -92,10 +101,10 @@ int main(int argc, char * argv[]) {
             cout << endl;
             Data rcv_data = rcv_packet.getData();
             int buffsize = rcv_buffer.buffsize();
-            //if (buffsize == 5){
+            if (buffsize == 5){
                 //write to output file
-              //  rcv_buffer.clean();
-            //}
+                rcv_buffer.clean();
+            }
             
             if (rcv_data.size() != 0){
                 rcv_buffer.insert(rcv_packet);
@@ -104,15 +113,8 @@ int main(int argc, char * argv[]) {
         }
     }
     
-    /*
-    vector<rcvseg> FinalBuff = rcv_buffer.getBuffer();
     
-    for (int i = 0; i < FinalBuff.size(); i++){
-        string res(FinalBuff[i].thisData.begin(),FinalBuff[i].thisData.end());
-        cout << res << endl;
-        
-    }
-     */
+
     
     close(sockfd);
     return 0;
