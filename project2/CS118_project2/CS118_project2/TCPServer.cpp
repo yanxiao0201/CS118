@@ -53,6 +53,7 @@ void TCPServer::receiveSYN(){
     }
 }
 
+
 int TCPServer::sendSYNACK(){
     Packet mySYNACK;
     mySYNACK.setSYN(true);
@@ -71,6 +72,73 @@ int TCPServer::sendSYNACK(){
         }
     }
     return 999;
+}
+
+
+void TCPServer::receivefirstACK(){
+    ssize_t receive_len=-1;
+    while (true) {
+        memset(buffer, 0, BUFFSIZE);
+        receive_len=recvfrom(this->sockid, buffer, BUFFSIZE, 0, (struct sockaddr*) &client_address, &clienet_addrlen);
+        if (receive_len<0){
+            perror("Receive first ACK error\n");
+            exit(1);
+        }
+        Data mydata(buffer,buffer+receive_len);
+        Packet recv_pkt(mydata);
+        if (recv_pkt.isACK()) {
+            my_ack_num=recv_pkt.getSeq()+receive_len+1;
+            BigBuffer=OutputBuffer(5);
+            std::cout<<"SYN received! My ACK is "<<my_ack_num<<" Start Sending File..."<<std::endl;
+            break;
+        }
+        else{
+            perror("First ACK reception failure!\n");
+            continue;
+        }
+    }
+}
+
+void TCPServer::sendFile(){
+    //Packet myPacket;
+    ssize_t receive_len=-1;
+    while (!BigBuffer.isEmpty()) {
+        Data ready_to_send_data=BigBuffer.retreive_last();
+        Packet ready_to_send_packet=Packet(ready_to_send_data);
+        ready_to_send_packet.setSeq(my_seq_num);
+        Data loaded_data=ready_to_send_packet.loadPacket();
+        while (true) {
+            if (sendto(sockid, loaded_data.data(), loaded_data.size(), 0, (struct sockaddr *) &client_address , clienet_addrlen)<0) {
+                perror("File sent failed\n");
+                continue;
+            }
+            else{
+                std::cout<<"SYNACK sent! My seq number is "<<my_seq_num<<std::endl;
+                my_seq_num+=sizeof(ready_to_send_data);
+                break;
+            }
+        }
+        while (true) {
+            memset(buffer, 0, BUFFSIZE);
+            receive_len=recvfrom(this->sockid, buffer, BUFFSIZE, 0, (struct sockaddr*) &client_address, &clienet_addrlen);
+            if (receive_len<0){
+                perror("Receive first ACK error\n");
+                exit(1);
+            }
+            Data mydata(buffer,buffer+receive_len);
+            Packet recv_pkt(mydata);
+            if (recv_pkt.isACK()) {
+                my_ack_num=recv_pkt.getSeq()+receive_len+1;
+                BigBuffer=OutputBuffer(5);
+                std::cout<<"SYN received! My ACK is "<<my_ack_num<<" Start Sending File..."<<std::endl;
+                break;
+            }
+            else{
+                perror("First ACK reception failure!\n");
+                continue;
+            }
+        }
+    }
 }
 
 void TCPServer::sendFIN(){
@@ -114,6 +182,8 @@ void TCPServer::receiveFINACK(){
     }
     close(this->sockid);
 }
+
+
 
 
 

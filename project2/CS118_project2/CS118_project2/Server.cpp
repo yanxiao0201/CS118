@@ -31,6 +31,8 @@ int main(int argc, const char * argv[]) {
     TCPServer myserver(port);
     myserver.receiveSYN();
     myserver.sendSYNACK();
+    myserver.receivefirstACK();
+    myserver.sendFile();
     myserver.sendFIN();
     myserver.receiveFINACK();
     return 0;
