@@ -14,9 +14,9 @@
 #include <stdlib.h>
 #include <cstdint>
 
-#define WND 5120
-#define MAXSEQ 30720
-#define BUFFSIZE 1024
+
+#define MAXSEQ 1024
+#define BUFFSIZE 1031
 
 typedef std::vector<char> Data;
 
@@ -41,7 +41,6 @@ class Packet{
 private:
     TCPheader myHeader;
     Data myData;
-    
 public:
     Packet();
     Packet(Data& rcvData);
@@ -59,7 +58,8 @@ public:
     bool isACK();
     bool isFIN();
     bool isSYN();
-    Data loadPacket();
+    Data to_UDPData();
+    void loadData(Data &ready_to_send_data);
     //int loadPacket();
     //char buffer[BUFFSIZE];
 };
