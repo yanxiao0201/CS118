@@ -89,7 +89,7 @@ void TCPServer::receivefirstACK(){
         if (recv_pkt.isACK()) {
             my_ack_num=recv_pkt.getSeq()+receive_len+1;
             BigBuffer=OutputBuffer(5);
-            std::cout<<"First SYN received! My ACK is "<<my_ack_num<<" Start Sending File..."<<std::endl;
+            std::cout<<"First ACK received! My ACK is "<<my_ack_num<<" Start Sending File..."<<std::endl;
             break;
         }
         else{
@@ -106,6 +106,7 @@ void TCPServer::sendFile(){
     while (!BigBuffer.IsEmpty()) {
         count--;
         Data ready_to_send_data=BigBuffer.retreive_last();
+        //std::cout<<ready_to_send_data[0]<<std::endl;
         Packet ready_to_send_packet=Packet(ready_to_send_data);
         ready_to_send_packet.setSeq(my_seq_num);
         Data loaded_data=ready_to_send_packet.loadPacket();

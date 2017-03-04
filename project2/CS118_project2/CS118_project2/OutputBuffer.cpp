@@ -25,6 +25,6 @@ Data OutputBuffer::retreive_last(){
     Data last=my_outputbuffer.back();
     my_outputbuffer.pop_back();
     size--;
-    std::cout<<"size is "<<size<<std::endl;
+    //std::cout<<"size is "<<size<<std::endl;
     return last;
 }
