@@ -15,7 +15,7 @@ public:
     OutputBuffer();
     OutputBuffer(int Data_num);
     Data retreive_last();
-    bool isEmpty();
+    bool IsEmpty();
 private:
     std::vector<Data> my_outputbuffer;
     int size;
