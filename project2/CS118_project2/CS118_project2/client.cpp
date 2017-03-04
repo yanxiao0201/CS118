@@ -65,7 +65,7 @@ int main(int argc, char * argv[]) {
     int rcv;
     RcvBuffer rcv_buffer;
     fstream outfile;
-    outfile.open("recieved.data", ios::app|ios::out);
+    outfile.open("recieved.data", ios::app|ios::out|ios::binary);
 
     while (1){
         rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen);
@@ -110,7 +110,11 @@ int main(int argc, char * argv[]) {
             if (buffsize == 5){
                 //write to output file
                 
-                
+                for (int i = 0; i < 5; i++){
+                    for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
+                        outfile << rcv_buffer.getBuffer()[i].thisData[j];
+                    }
+                }
                 rcv_buffer.clean();
             }
             
@@ -136,7 +140,7 @@ Data syn_generator(void){
     Packet syn_packet;
     syn_packet.setSeq(firstPacketNo);
     syn_packet.setSYN(true);
-    Data syn_send = syn_packet.loadPacket();
+    Data syn_send = syn_packet.to_UDPData();
     
     cout << "Sending Packet SYN" << endl;
 
@@ -160,7 +164,7 @@ Data packet_generator(Packet& rcv_packet){
 
     cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << endl;
     cout << "Sending Packet AckNo = " << ack_no;
-    Data ack_send = send_packet.loadPacket();
+    Data ack_send = send_packet.to_UDPData();
     
     return ack_send;
 }
