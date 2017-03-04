@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -63,6 +64,8 @@ int main(int argc, char * argv[]) {
     char buffer[BUFFSIZE];
     int rcv;
     RcvBuffer rcv_buffer;
+    fstream outfile;
+    outfile.open("recieved.data", ios::app|ios::out);
 
     while (1){
         rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen);
@@ -75,12 +78,14 @@ int main(int argc, char * argv[]) {
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
         
+        /*
         if (rcv_packet.getData().size() != 0){
             cout << rcv_packet.getData()[0] << endl;
         }
         else {
             cout << "this packet is empty" << endl;
         }
+         */
         
         Data ack_send = packet_generator(rcv_packet);
         
@@ -95,6 +100,7 @@ int main(int argc, char * argv[]) {
         else if (rcv_packet.isFIN()){
             cout << " FIN" << endl;
             break;
+            
         }
         
         else{
@@ -103,6 +109,8 @@ int main(int argc, char * argv[]) {
             int buffsize = rcv_buffer.buffsize();
             if (buffsize == 5){
                 //write to output file
+                
+                
                 rcv_buffer.clean();
             }
             
@@ -115,7 +123,7 @@ int main(int argc, char * argv[]) {
     
     
 
-    
+    outfile.close();
     close(sockfd);
     return 0;
 }
