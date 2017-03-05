@@ -25,7 +25,7 @@
 #include "OutputBuffer.h"
 class TCPServer{
 private:
-    char buffer[BUFFSIZE];
+    char buffer[BUFFSIZE];// This buffer is to receive a single packet
     struct sockaddr_in my_address;
     int sockid;
     int my_seq_num;

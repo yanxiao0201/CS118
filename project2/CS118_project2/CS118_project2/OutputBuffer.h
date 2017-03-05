@@ -10,14 +10,21 @@
 #define OutputBuffer_h
 
 #include "Packet.h"
-class OutputBuffer{
+#include <deque>
+#include <string>
+class OutputBuffer{// Output Buffer are used to store the content
 public:
     OutputBuffer();
     OutputBuffer(int Data_num);
-    Data retreive_last();
+    void readFile(std::string filename);
+    Data retrieve_last();
     bool IsEmpty();
+    //queue type
+    Data retrieve_front();
+    int getSize();
 private:
     std::vector<Data> my_outputbuffer;
-    int size;
+    std::deque<Data> my_outputbuffer_queue;
+    //int my_size;
 };
 #endif /* OutputBuffer_hpp */

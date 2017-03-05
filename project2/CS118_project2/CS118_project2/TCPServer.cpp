@@ -7,6 +7,7 @@
 //
 
 #include "TCPServer.h"
+#include <fstream>
 TCPServer::TCPServer(int port){
     int sockid_=socket(AF_INET, SOCK_DGRAM, 0);// return the file descriptor of the new socket
     if (sockid_==-1) {
@@ -88,7 +89,8 @@ void TCPServer::receivefirstACK(){
         Packet recv_pkt(mydata);
         if (recv_pkt.isACK()) {
             my_ack_num=recv_pkt.getSeq()+receive_len+1;
-            BigBuffer=OutputBuffer(5);
+            //BigBuffer=OutputBuffer(5);
+            BigBuffer.readFile("Test.bin");
             std::cout<<"First ACK received! My ACK is "<<my_ack_num<<" Start Sending File..."<<std::endl;
             break;
         }
@@ -103,10 +105,17 @@ void TCPServer::sendFile(){
     //Packet myPacket;
     ssize_t receive_len=-1;
     int count=4;
+    std::fstream outfile ("new.bin",std::ofstream::binary|std::ios::app|std::ios::out);
     while (!BigBuffer.IsEmpty()) {
+        std::cout<<"retreiveing"<<std::endl;
+        std::cout<<"size is "<<BigBuffer.getSize()<<std::endl;
         count--;
-        Data ready_to_send_data=BigBuffer.retreive_last();
-        std::cout<<"ready_to_send content "<<ready_to_send_data[0]<<std::endl;
+        Data ready_to_send_data=BigBuffer.retrieve_front();
+        outfile.write(ready_to_send_data.data(), ready_to_send_data.size());
+        /*std::cout<<"ready_to_send content : "<<std::endl;
+        for (int i=0; i<ready_to_send_data.size(); i++) {
+            std::cout<<ready_to_send_data[i];
+        }*/
         Packet ready_to_send_packet;
         ready_to_send_packet.loadData(ready_to_send_data);
         ready_to_send_packet.setSeq(my_seq_num);
