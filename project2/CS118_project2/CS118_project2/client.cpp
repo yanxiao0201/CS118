@@ -107,10 +107,10 @@ int main(int argc, char * argv[]) {
             cout << endl;
             Data rcv_data = rcv_packet.getData();
             int buffsize = rcv_buffer.buffsize();
-            if (buffsize == 5){
+            if (buffsize == 1){
                 //write to output file
                 
-                for (int i = 0; i < 5; i++){
+                for (int i = 0; i < 1; i++){
                     for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
                         outfile << rcv_buffer.getBuffer()[i].thisData[j];
                     }
