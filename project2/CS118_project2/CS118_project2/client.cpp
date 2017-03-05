@@ -100,6 +100,19 @@ int main(int argc, char * argv[]) {
 
         else if (rcv_packet.isFIN()){
             cout << " FIN" << endl;
+            
+            int buffsize = rcv_buffer.buffsize();
+            if (buffsize != 0){
+                for (int i = 0; i < buffsize; i++){
+                    for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
+                        outfile << rcv_buffer.getBuffer()[i].thisData[j];
+                    }
+                }
+                rcv_buffer.clean();
+            }
+            
+            
+            
             break;
             
         }
