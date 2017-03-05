@@ -110,10 +110,10 @@ int main(int argc, char * argv[]) {
             Data rcv_data = rcv_packet.getData();
             int buffsize = rcv_buffer.buffsize();
             
-            if (buffsize == 1){
+            if (buffsize == WNDSIZE){
                 //write to output file
                 
-                for (int i = 0; i < 1; i++){
+                for (int i = 0; i < WNDSIZE; i++){
                     for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
                         outfile << rcv_buffer.getBuffer()[i].thisData[j];
                     }
@@ -124,11 +124,13 @@ int main(int argc, char * argv[]) {
             if (rcv_data.size() != 0){
                 rcv_buffer.insert(rcv_packet);
             }
+            /*
             for (int i = 0; i < 1; i++){
                 for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
                     outfile << rcv_buffer.getBuffer()[i].thisData[j];
                 }
             }
+             */
 
             
         }
