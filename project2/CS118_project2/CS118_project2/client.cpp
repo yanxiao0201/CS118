@@ -65,7 +65,7 @@ int main(int argc, char * argv[]) {
     int rcv;
     RcvBuffer rcv_buffer;
     fstream outfile;
-    outfile.open("recieved.data", ios::app|ios::out|ios::binary);
+    outfile.open("received.data", ios::app|ios::out|ios::binary);
 
     while (1){
         rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen);
@@ -103,16 +103,14 @@ int main(int argc, char * argv[]) {
             
             int buffsize = rcv_buffer.buffsize();
             if (buffsize != 0){
+                
                 for (int i = 0; i < buffsize; i++){
-                    for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
-                        outfile << rcv_buffer.getBuffer()[i].thisData[j];
-                    }
+                    outfile.write(rcv_buffer.getBuffer()[i].thisData.data(), rcv_buffer.getBuffer()[i].thisData.size());
                 }
+                
                 rcv_buffer.clean();
             }
-            
-            
-            
+        
             break;
             
         }
@@ -127,10 +125,9 @@ int main(int argc, char * argv[]) {
                 //write to output file
                 
                 for (int i = 0; i < WNDSIZE; i++){
-                    for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
-                        outfile << rcv_buffer.getBuffer()[i].thisData[j];
-                    }
+                    outfile.write(rcv_buffer.getBuffer()[i].thisData.data(), rcv_buffer.getBuffer()[i].thisData.size());
                 }
+           
                 rcv_buffer.clean();
             }
             
@@ -138,6 +135,7 @@ int main(int argc, char * argv[]) {
                 rcv_buffer.insert(rcv_packet);
             }
             
+            /*
             //debug function
             for (int i = 0; i < 1; i++){
                 for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
@@ -146,7 +144,7 @@ int main(int argc, char * argv[]) {
             }
             rcv_buffer.clean();
             cout << "rcv_buffer size = " << rcv_buffer.buffsize() << endl;
-        
+            */
 
             
         }
