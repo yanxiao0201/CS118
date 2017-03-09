@@ -1,20 +1,19 @@
 //
-//  client.h
+//  RcvBuffer.hpp
 //  CS118_project2
 //
-//  Created by Xiao Yan on 3/1/17.
+//  Created by Xiao Yan on 3/5/17.
 //  Copyright © 2017 Xiao Yan. All rights reserved.
 //
 
-#ifndef client_h
-#define client_h
+#ifndef RcvBuffer_hpp
+#define RcvBuffer_hpp
 
-Data packet_generator(Packet& rcv_packet);
-//Data request_generator(Packet& rcv_packet, char * filename);
-Data syn_generator(void);
+#include "Packet.h"
 
 struct rcvseg{
     uint16_t seqNo;
+    bool ACKed;
     Data thisData;
 };
 
@@ -24,10 +23,13 @@ public:
     int buffsize();
     void clean();
     std::vector<rcvseg> getBuffer();
-
+    struct rcvseg getElement_i(int i);
+    bool isACKed_i(int i);
+    
 private:
-    std::vector<rcvseg> FinalBuff;
+    std::vector<rcvseg> winBuff;
 };
 
 
-#endif /* client_h */
+
+#endif /* RcvBuffer_hpp */

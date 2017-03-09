@@ -47,7 +47,7 @@ public:
     Packet(Data& rcvData);
     void setHeader(uint16_t seq_number,uint16_t ack_number,bool ACK,bool FIN,bool SYN);
     TCPheader getHeader();
-    void setData(Data out_data);
+    void setData(Data& out_data);
     Data getData();
     void setSeq(uint16_t seq_number);
     void setAckNumber(uint16_t ack_number);

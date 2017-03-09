@@ -8,7 +8,7 @@
 
 
 #include "Packet.h"
-#include "client.h"
+#include "RcvBuffer.h"
 #include <stdio.h>
 #include <string.h> 	// memset, memcpy
 #include <netinet/in.h> // sockaddr_in
@@ -22,6 +22,10 @@
 
 using namespace std;
 
+Data packet_generator(Packet& rcv_packet);
+Data request_generator(Packet& rcv_packet, string& filename);
+Data syn_generator(void);
+
 int main(int argc, char * argv[]) {
     
     if (argc != 4){
@@ -31,9 +35,11 @@ int main(int argc, char * argv[]) {
     
     int portno;
     char * hostname;
-
+    string filename;
+    
     hostname = argv[1];
     portno = atoi(argv[2]);
+    filename = argv[3];
     
     int sockfd;
     struct sockaddr_in serveraddr;
@@ -68,89 +74,58 @@ int main(int argc, char * argv[]) {
     outfile.open("received.data", ios::app|ios::out|ios::binary);
 
     while (1){
+        //load received data to a packet
         rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen);
         if (rcv < 0){
             perror("Error receiving from pipeline");
         }
-        
-        cout << rcv << endl;
+        //cout << rcv << endl;
         
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
         
-        /*
-        if (rcv_packet.getData().size() != 0){
-            cout << rcv_packet.getData()[0] << endl;
+        //deal with send data
+        Data ack_send;
+        if (rcv_packet.isSYN()){
+            ack_send = request_generator(rcv_packet, filename);
         }
-        else {
-            cout << "this packet is empty" << endl;
+        else{
+            ack_send = packet_generator(rcv_packet);
         }
-         */
-        
-        Data ack_send = packet_generator(rcv_packet);
         
         if(sendto(sockfd, ack_send.data(), ack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
             perror("error sending ACK packet");
         }
         
-        if (rcv_packet.isSYN()){
-            cout << endl;
-            continue;
-        }
-
-        else if (rcv_packet.isFIN()){
-            cout << " FIN" << endl;
+        // deal with received data
+        int buffsize = rcv_buffer.buffsize();
+        if (rcv_packet.isFIN()){
             
-            int buffsize = rcv_buffer.buffsize();
             if (buffsize != 0){
-                
                 for (int i = 0; i < buffsize; i++){
                     outfile.write(rcv_buffer.getBuffer()[i].thisData.data(), rcv_buffer.getBuffer()[i].thisData.size());
                 }
-                
                 rcv_buffer.clean();
             }
-        
             break;
-            
         }
-         
-        
         else{
-            cout << endl;
-            Data rcv_data = rcv_packet.getData();
-            int buffsize = rcv_buffer.buffsize();
-            
             if (buffsize == WNDSIZE){
                 //write to output file
                 
                 for (int i = 0; i < WNDSIZE; i++){
                     outfile.write(rcv_buffer.getBuffer()[i].thisData.data(), rcv_buffer.getBuffer()[i].thisData.size());
                 }
-           
                 rcv_buffer.clean();
             }
             
+            Data rcv_data = rcv_packet.getData();
             if (rcv_data.size() != 0){
                 rcv_buffer.insert(rcv_packet);
             }
             
-            /*
-            //debug function
-            for (int i = 0; i < 1; i++){
-                for (int j = 0; j < rcv_buffer.getBuffer()[i].thisData.size();j++){
-                    outfile << rcv_buffer.getBuffer()[i].thisData[j];
-                }
-            }
-            rcv_buffer.clean();
-            cout << "rcv_buffer size = " << rcv_buffer.buffsize() << endl;
-            */
-
-            
         }
     }
-    
-    
 
     outfile.close();
     close(sockfd);
@@ -158,7 +133,6 @@ int main(int argc, char * argv[]) {
 }
 
 Data syn_generator(void){
-    
     srand(time(NULL));
     uint16_t firstPacketNo = rand() % MAXSEQ;
     
@@ -173,50 +147,49 @@ Data syn_generator(void){
 }
 
 Data packet_generator(Packet& rcv_packet){
+    Packet send_packet;
     
     uint16_t seq_No = rcv_packet.getAckNumber();
-    Packet send_packet;
     send_packet.setSeq(seq_No);
+    
     uint16_t ack_no = (rcv_packet.getData().size() + rcv_packet.getSeq())% MAXSEQ;
-    
-    if (rcv_packet.isFIN()){
-        send_packet.setFIN(true);
-    }
-    
     send_packet.setACK(true);
     send_packet.setAckNumber(ack_no);
-    
 
     cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << endl;
     cout << "Sending Packet AckNo = " << ack_no;
-    Data ack_send = send_packet.to_UDPData();
     
+    if (rcv_packet.isFIN()){
+        send_packet.setFIN(true);
+        cout << " FIN" << endl;
+    }
+    
+    else{
+        cout << endl;
+    }
+    
+    Data ack_send = send_packet.to_UDPData();
     return ack_send;
 }
 
-int RcvBuffer::insert(Packet p){
+Data request_generator(Packet& rcv_packet, string& filename){
+    Packet send_packet;
     
-    Data tmp = p.getData();
-    uint16_t seqNo = p.getSeq();
-    rcvseg rcv_seg;
-    rcv_seg.seqNo = seqNo;
-    rcv_seg.thisData = tmp;
-    FinalBuff.push_back(rcv_seg);
+    uint16_t seq_No = rcv_packet.getAckNumber();
+    send_packet.setSeq(seq_No);
     
-    return 0;
+    uint16_t ack_no = (rcv_packet.getData().size() + rcv_packet.getSeq())% MAXSEQ;
+    send_packet.setACK(true);
+    send_packet.setAckNumber(ack_no);
+    
+    Data temp(filename.begin(),filename.end());
+    send_packet.setData(temp);
+    
+    cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << endl;
+    cout << "Sending Packet AckNo = " << ack_no << endl;
+    
+    Data ack_send = send_packet.to_UDPData();
+    return ack_send;
 }
 
-vector<rcvseg> RcvBuffer::getBuffer(){
-    
-    return FinalBuff;
-    
-}
-
-int RcvBuffer::buffsize(){
-    return FinalBuff.size();
-}
-
-void RcvBuffer::clean(){
-    FinalBuff.clear();
-}
 

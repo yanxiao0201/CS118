@@ -19,7 +19,7 @@ TCPheader Packet::getHeader(){
     return myHeader;
 }
 
-void Packet::setData(Data out_data){
+void Packet::setData(Data& out_data){
     myData = out_data;
 }
 
