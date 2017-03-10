@@ -17,6 +17,7 @@
 
 #define MAXSEQ 30720
 #define BUFFSIZE 1024
+#define DATASIZE 1017
 #define WNDSIZE 5
 
 typedef std::vector<char> Data;

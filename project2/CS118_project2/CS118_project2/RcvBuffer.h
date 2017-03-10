@@ -10,24 +10,45 @@
 #define RcvBuffer_hpp
 
 #include "Packet.h"
+#include <deque>
+
 
 struct rcvseg{
     uint16_t seqNo;
-    bool ACKed;
+    bool isACKed;
     Data thisData;
 };
 
 class RcvBuffer{
 public:
-    int insert(Packet p);
-    int buffsize();
-    void clean();
-    std::vector<rcvseg> getBuffer();
+    RcvBuffer();
+    bool insert_and_assert(Packet& p);
+    void write(std::fstream& outfile);
+    
+    rcvseg pop_front();
+    void push_back();
+    
+    bool isAcked_i(int i);
+    void setAcked_i(int i);
+    
+    void setData_i(int i, Data& data);
+    void setseqNo_i(int i, uint16_t seqNo);
+    
+    std::deque<rcvseg> getBuffer();
     struct rcvseg getElement_i(int i);
-    bool isACKed_i(int i);
+    
+    uint16_t get_rcv_base();
+    void set_rcv_base(uint16_t base);
+    
+    int size();
+    
     
 private:
-    std::vector<rcvseg> winBuff;
+    std::deque<rcvseg> winBuff;
+    uint16_t rcv_base;
+    //uint16_t rcv_max;
+    //uint16_t rcv_outwnd_start;
+    //uint16_t rcv_outwnd_end;
 };
 
 
