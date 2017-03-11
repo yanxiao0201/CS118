@@ -7,7 +7,7 @@
 //
 
 #include "RcvBuffer.h"
-#include <fstream>
+
 //#include "Packet.h"
 
 RcvBuffer::RcvBuffer(){
@@ -20,6 +20,7 @@ RcvBuffer::RcvBuffer(){
     }
 
     rcv_base = 0;
+    base_status = false;
 
 }
 
@@ -27,6 +28,10 @@ bool RcvBuffer::insert_and_assert(Packet& p){
     
     Data tmp = p.getData();
     uint16_t seqNo = p.getSeq();
+    
+    if (tmp.size() == 0){
+        return false;
+    }
     
     int pos;
 
@@ -115,8 +120,9 @@ uint16_t RcvBuffer::get_rcv_base(){
 }
 
 void RcvBuffer::set_rcv_base(uint16_t base){
-    if (rcv_base == 0){
+    if (base_status == false){
         rcv_base = base;
+        base_status = true;
     }
 }
 
@@ -124,6 +130,9 @@ int RcvBuffer::size(){
     return winBuff.size();
 }
 
+bool RcvBuffer::is_base_set(){
+    return base_status;
+}
 
 
 

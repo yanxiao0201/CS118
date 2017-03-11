@@ -11,7 +11,7 @@
 
 #include "Packet.h"
 #include <deque>
-
+#include <fstream>
 
 struct rcvseg{
     uint16_t seqNo;
@@ -39,6 +39,7 @@ public:
     
     uint16_t get_rcv_base();
     void set_rcv_base(uint16_t base);
+    bool is_base_set();
     
     int size();
     
@@ -46,9 +47,7 @@ public:
 private:
     std::deque<rcvseg> winBuff;
     uint16_t rcv_base;
-    //uint16_t rcv_max;
-    //uint16_t rcv_outwnd_start;
-    //uint16_t rcv_outwnd_end;
+    bool base_status;
 };
 
 
