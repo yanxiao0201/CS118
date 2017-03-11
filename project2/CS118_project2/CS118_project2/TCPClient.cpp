@@ -15,6 +15,8 @@ void syn_timer(TCPClient& client){
     
     start = std::clock();
     
+    //std::cout << "nohere" << std::endl;
+    
     while(1){
         if(!client.is_SynAck){
             
@@ -114,6 +116,8 @@ Packet TCPClient::TCPHandshake(){
         perror("Error sending SYN packet");
     }
     
+    //std::cout << "here" << std::endl;
+    
     std::thread resend_syn (syn_timer,(*this));
     
     while(1){
@@ -159,10 +163,6 @@ Packet TCPClient::Send_Request(Packet& p){
         }
     }
 }
-
-
-
-
 
 void TCPClient::closing(){
     
