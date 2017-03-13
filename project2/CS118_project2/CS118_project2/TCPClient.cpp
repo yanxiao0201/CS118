@@ -15,8 +15,6 @@ void syn_timer(TCPClient& client){
     
     start = std::clock();
     
-    //std::cout << "nohere" << std::endl;
-    
     while(1){
         if(!client.is_SynAck){
             
@@ -25,16 +23,15 @@ void syn_timer(TCPClient& client){
             if(duration > 0.5){
                 //This tells that we haven't received our ACk yet for this packet
                 //So send it again
-                std::cout << "Retransmit syn" << std::endl;
+                std::cout << "Sending Packet SYN Retransmission" << std::endl;
                 
                 //Resending packet again
                 if(sendto(client.sockfd, client.syn_send.data(), client.syn_send.size(), 0, (struct sockaddr *)&client.serveraddr, sizeof(client.serveraddr)) < 0){
-                    perror("Error sending SYN packet");
+                    perror("Error resending SYN packet");
                 }
                 //Reseting the timer
                 start = std::clock();
             }
-            
         }
         
         else{
@@ -59,7 +56,9 @@ void request_timer(TCPClient& client){
             if(duration > 0.5){
                 //This tells that we haven't received our ACk yet for this packet
                 //So send it again
-                std::cout << "Retransmit Request" << std::endl;
+                
+                uint16_t ack_no = (client.SynAck.getData().size() + client.SynAck.getSeq())% MAXSEQ;
+                std::cout << "Sending Request Packet AckNo = " << ack_no <<"Retransmission" << std::endl;
                 
                 //Resending packet again
                 if(sendto(client.sockfd, client.request_send.data(), client.request_send.size(), 0, (struct sockaddr *)&client.serveraddr, sizeof(client.serveraddr)) < 0){
@@ -106,7 +105,7 @@ int TCPClient::connect(char * argv[]){
     return sockfd;
 }
 
-Packet TCPClient::TCPHandshake(){
+void TCPClient::TCPHandshake(){
     
     syn_send = syn_generator();
     is_SynAck = false;
@@ -114,8 +113,6 @@ Packet TCPClient::TCPHandshake(){
     if(sendto(sockfd, syn_send.data(), syn_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
         perror("Error sending SYN packet");
     }
-    
-    //std::cout << "here" << std::endl;
     
     std::thread resend_syn (syn_timer,(*this));
     
@@ -129,21 +126,24 @@ Packet TCPClient::TCPHandshake(){
         if (rcv_packet.isACK() && rcv_packet.isSYN()){
             //is SynAck
             is_SynAck = true;
+            std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
             
-            return rcv_packet;
+            SynAck = rcv_packet;
+            break;
         }
     }
 }
 
 
-Packet TCPClient::Send_Request(Packet& p){
+void TCPClient::Send_Request(){
     
-    request_send = request_generator(p);
+    request_send = request_generator(SynAck);
     is_RequestAck = false;
     
     if(sendto(sockfd, request_send.data(), request_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
         perror("Error sending Request packet");
     }
+    
     
     std::thread resend_request(request_timer,(*this));
     
@@ -157,19 +157,22 @@ Packet TCPClient::Send_Request(Packet& p){
         if (rcv_packet.isACK()){
             //is Ack
             is_RequestAck = true;
-            
-            return rcv_packet;
+            std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
+            break;
+            //return rcv_packet;
         }
     }
 }
 
 void TCPClient::closing(){
     
-    //TODO: need to find a way to keep waiting and write the rest package.
+    //TODO: Do I need to send FIN as well and wait for the ACK?
+    
+    sleep(1);
     close(sockfd);
 }
 
-void TCPClient::recv_data(std::fstream& outfile, Packet& RequestAck){
+void TCPClient::recv_data(std::fstream& outfile){
     //send the Ack for RequestAck, then start receive package
     Data reqAckAck = packet_generator(RequestAck);
     if(sendto(sockfd, reqAckAck.data(), reqAckAck.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
@@ -186,12 +189,17 @@ void TCPClient::recv_data(std::fstream& outfile, Packet& RequestAck){
         
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
+        std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
         
         Data ack_send;
         if (rcv_packet.isFIN()){
             
-            //TODO: send FINACK
+            ack_send = packet_generator(rcv_packet);
+            if(sendto(sockfd, ack_send.data(), ack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
+                perror("error sending ACK packet");
+            }
             break;
+            //TODO: Do I need to check if there is unwritten package?
         }
         else {
             if (rcv_buffer.is_base_set() == false){
@@ -222,7 +230,6 @@ Data TCPClient::syn_generator(void){
     syn_packet.setSeq(firstPacketNo);
     syn_packet.setSYN(true);
     Data syn_send = syn_packet.to_UDPData();
-    
     std::cout << "Sending Packet SYN" << std::endl;
     
     return syn_send;
@@ -238,7 +245,6 @@ Data TCPClient::packet_generator(Packet& rcv_packet){
     send_packet.setACK(true);
     send_packet.setAckNumber(ack_no);
     
-    std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
     std::cout << "Sending Packet AckNo = " << ack_no;
     
     if (rcv_packet.isFIN()){
@@ -267,9 +273,8 @@ Data TCPClient::request_generator(Packet& rcv_packet){
     
     Data temp(filename.begin(),filename.end());
     send_packet.setData(temp);
-    
-    std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
-    std::cout << "Sending Packet AckNo = " << ack_no << std::endl;
+
+    std::cout << "Sending Request Packet AckNo = " << ack_no << std::endl;
     
     Data ack_send = send_packet.to_UDPData();
     return ack_send;

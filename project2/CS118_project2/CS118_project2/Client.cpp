@@ -35,16 +35,14 @@ int main(int argc, char * argv[]) {
     
     client.connect(argv);
     
-    Packet SynAck;
-    SynAck = client.TCPHandshake();
+    client.TCPHandshake();
     
-    Packet RequestAck;
-    RequestAck = client.Send_Request(SynAck);
+    client.Send_Request();
     
     fstream outfile;
     outfile.open("received.data", ios::app|ios::out|ios::binary);
 
-    client.recv_data(outfile, RequestAck);
+    client.recv_data(outfile);
     client.closing();
 
     outfile.close();

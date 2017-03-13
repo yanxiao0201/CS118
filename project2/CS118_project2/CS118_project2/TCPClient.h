@@ -48,15 +48,18 @@ private:
     Data request_send;
     bool is_RequestAck;
     
+    Packet SynAck;
+    Packet RequestAck;
+    
 public:
     TCPClient();
     int connect (char * argv[]);
-    void recv_data(std::fstream& outfile, Packet& RequestAck);
+    void recv_data(std::fstream& outfile);
     
-    Packet TCPHandshake();
+    void TCPHandshake();
     friend void syn_timer(TCPClient& client);
     
-    Packet Send_Request(Packet& p);
+    void Send_Request();
     friend void request_timer(TCPClient& client);
     
     void closing();
