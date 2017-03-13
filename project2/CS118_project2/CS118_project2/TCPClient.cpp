@@ -70,7 +70,6 @@ void request_timer(TCPClient& client){
             }
             
         }
-        
         else{
             break;
         }
@@ -166,6 +165,7 @@ Packet TCPClient::Send_Request(Packet& p){
 
 void TCPClient::closing(){
     
+    //TODO: need to find a way to keep waiting and write the rest package.
     close(sockfd);
 }
 
