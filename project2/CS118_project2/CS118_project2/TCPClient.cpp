@@ -16,7 +16,7 @@ void syn_timer(TCPClient& client){
     start = std::clock();
     
     while(1){
-        if(!client.is_SynAck){
+        if(!client.is_SynAck && !client.is_close){
             
             duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
             
@@ -49,7 +49,7 @@ void request_timer(TCPClient& client){
     start = std::clock();
     
     while(1){
-        if(!client.is_RequestAck){
+        if(!client.is_RequestAck && !client.is_close){
             
             duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
             
@@ -58,7 +58,7 @@ void request_timer(TCPClient& client){
                 //So send it again
                 
                 uint16_t ack_no = (client.SynAck.getData().size() + client.SynAck.getSeq())% MAXSEQ;
-                std::cout << "Sending Request Packet AckNo = " << ack_no <<"Retransmission" << std::endl;
+                std::cout << "Sending Request Packet AckNo = " << ack_no <<" Retransmission" << std::endl;
                 
                 //Resending packet again
                 if(sendto(client.sockfd, client.request_send.data(), client.request_send.size(), 0, (struct sockaddr *)&client.serveraddr, sizeof(client.serveraddr)) < 0){
@@ -79,6 +79,9 @@ void request_timer(TCPClient& client){
 
 TCPClient::TCPClient(){
     addrlen = sizeof(serveraddr);
+    is_SynAck = false;
+    is_RequestAck = false;
+    is_close = false;
 }
 
 int TCPClient::connect(char * argv[]){
@@ -108,18 +111,18 @@ int TCPClient::connect(char * argv[]){
 void TCPClient::TCPHandshake(){
     
     syn_send = syn_generator();
-    is_SynAck = false;
     
     if(sendto(sockfd, syn_send.data(), syn_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
         perror("Error sending SYN packet");
     }
     
-    std::thread resend_syn (syn_timer,(*this));
+    std::thread resend_syn (syn_timer,std::ref(*this));
     
     while(1){
-        if ((recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen)) < 0){
+        if ((rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen)) < 0){
             perror("Error receiving from pipeline");
         }
+        
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
         
@@ -131,37 +134,70 @@ void TCPClient::TCPHandshake(){
             SynAck = rcv_packet;
             break;
         }
+        
+        if (rcv_packet.isFIN()){
+            //if a FIN is received
+            
+            std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
+            is_close = true;
+            
+            Data finack_send = packet_generator(rcv_packet);
+            if(sendto(sockfd, finack_send.data(), finack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
+                perror("error sending FINACK packet");
+            }
+            
+            break;
+        }
     }
+    resend_syn.join();
 }
 
 
 void TCPClient::Send_Request(){
+    if (is_close){
+        return;
+    }
     
     request_send = request_generator(SynAck);
-    is_RequestAck = false;
     
     if(sendto(sockfd, request_send.data(), request_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
         perror("Error sending Request packet");
     }
     
     
-    std::thread resend_request(request_timer,(*this));
+    std::thread resend_request(request_timer,std::ref(*this));
     
     while(1){
-        if ((recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen)) < 0){
+        if ((rcv = recvfrom(sockfd, buffer, BUFFSIZE, 0, (struct sockaddr *)&serveraddr, &addrlen)) < 0){
             perror("Error receiving from pipeline");
         }
         Data tmp(buffer,buffer + rcv);
         Packet rcv_packet(tmp);
         
-        if (rcv_packet.isACK()){
+        if (rcv_packet.isACK() && !rcv_packet.isFIN()){
             //is Ack
             is_RequestAck = true;
             std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
+            RequestAck = rcv_packet;
             break;
             //return rcv_packet;
         }
+        
+        if (rcv_packet.isFIN()){
+            std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
+            is_close = true;
+            
+            
+            Data finack_send = packet_generator(rcv_packet);
+            if(sendto(sockfd, finack_send.data(), finack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
+                perror("error sending FINACK packet");
+            }
+            
+            break;
+        }
+        
     }
+    resend_request.join();
 }
 
 void TCPClient::closing(){
@@ -173,6 +209,10 @@ void TCPClient::closing(){
 }
 
 void TCPClient::recv_data(std::fstream& outfile){
+    
+    if (is_close){
+        return;
+    }
     //send the Ack for RequestAck, then start receive package
     Data reqAckAck = packet_generator(RequestAck);
     if(sendto(sockfd, reqAckAck.data(), reqAckAck.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
@@ -191,17 +231,19 @@ void TCPClient::recv_data(std::fstream& outfile){
         Packet rcv_packet(tmp);
         std::cout << "Receiving Packet SeqNo = " << rcv_packet.getSeq() << std::endl;
         
-        Data ack_send;
+        
         if (rcv_packet.isFIN()){
             
-            ack_send = packet_generator(rcv_packet);
-            if(sendto(sockfd, ack_send.data(), ack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
-                perror("error sending ACK packet");
+            Data finack_send = packet_generator(rcv_packet);
+            if(sendto(sockfd, finack_send.data(), finack_send.size(), 0, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0){
+                perror("error sending FINACK packet");
             }
             break;
             //TODO: Do I need to check if there is unwritten package?
         }
         else {
+            
+            Data ack_send;
             if (rcv_buffer.is_base_set() == false){
                 rcv_buffer.set_rcv_base(rcv_packet.getSeq());
             }

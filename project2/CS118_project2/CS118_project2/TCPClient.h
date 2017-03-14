@@ -51,6 +51,8 @@ private:
     Packet SynAck;
     Packet RequestAck;
     
+    bool is_close;
+    
 public:
     TCPClient();
     int connect (char * argv[]);
